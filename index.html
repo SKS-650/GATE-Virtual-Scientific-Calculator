@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GATE Virtual Scientific Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="calculator">
+
+  <!-- ══════════════════════════════════════════════
+       Title bar
+  ══════════════════════════════════════════════ -->
+  <div id="titlebar">
+    <span class="title">Scientific Calculator</span>
+    <button id="btn-help">Help</button>
+    <button id="btn-theme" title="Switch theme">&#9680;</button>
+    <button class="win-btn" id="btn-min"   title="Minimise">&#8212;</button>
+    <button class="win-btn" id="btn-close" title="Close">&#10005;</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       Display
+  ══════════════════════════════════════════════ -->
+  <div id="display-area">
+    <div id="expr-display">&nbsp;</div>
+    <div id="result-display">0</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       Button grid  (11 columns × 6 rows)
+       Every button's grid position is set in style.css.
+  ══════════════════════════════════════════════ -->
+  <div id="btn-area">
+
+    <!-- ── Row 1: mod | Deg/Rad (cols 2-6) | MC MR MS M+ M- ── -->
+    <button class="btn" id="r1-mod"    data-action="mod">mod</button>
+
+    <div id="angle-cell">
+      <input type="radio" name="angle" id="deg" value="deg" checked>
+      <label for="deg">Deg</label>
+      <input type="radio" name="angle" id="rad" value="rad">
+      <label for="rad">Rad</label>
+    </div>
+
+    <button class="btn" id="r1-MC"     data-action="MC">MC</button>
+    <button class="btn" id="r1-MR"     data-action="MR">MR</button>
+    <button class="btn" id="r1-MS"     data-action="MS">MS</button>
+    <button class="btn" id="r1-Mplus"  data-action="Mplus">M+</button>
+    <button class="btn" id="r1-Mminus" data-action="Mminus">M-</button>
+
+    <!-- ── Row 2: sinh cosh tanh Exp ( ) ←(wide) C +/- √ ── -->
+    <button class="btn"         id="r2-sinh" data-action="sinh">sinh</button>
+    <button class="btn"         id="r2-cosh" data-action="cosh">cosh</button>
+    <button class="btn"         id="r2-tanh" data-action="tanh">tanh</button>
+    <button class="btn"         id="r2-Exp"  data-action="Exp">Exp</button>
+    <button class="btn"         id="r2-lp"   data-action="(">(</button>
+    <button class="btn"         id="r2-rp"   data-action=")">)</button>
+    <button class="btn btn-red" id="r2-back" data-action="backspace">&#8592;</button>
+    <button class="btn btn-red" id="r2-C"    data-action="clear">C</button>
+    <button class="btn"         id="r2-neg"  data-action="negate">+/-</button>
+    <button class="btn"         id="r2-sqrt" data-action="sqrt">&#x221A;</button>
+
+    <!-- ── Row 3: sinh⁻¹ cosh⁻¹ tanh⁻¹ log₂x ln log 7 8 9 / % ── -->
+    <button class="btn" id="r3-asinh" data-action="asinh">sinh<sup>-1</sup></button>
+    <button class="btn" id="r3-acosh" data-action="acosh">cosh<sup>-1</sup></button>
+    <button class="btn" id="r3-atanh" data-action="atanh">tanh<sup>-1</sup></button>
+    <button class="btn" id="r3-log2"  data-action="log2">log<sub>2</sub>x</button>
+    <button class="btn" id="r3-ln"    data-action="ln">ln</button>
+    <button class="btn" id="r3-log"   data-action="log10">log</button>
+    <button class="btn" id="r3-7"     data-action="7">7</button>
+    <button class="btn" id="r3-8"     data-action="8">8</button>
+    <button class="btn" id="r3-9"     data-action="9">9</button>
+    <button class="btn" id="r3-div"   data-action="/">/</button>
+    <button class="btn" id="r3-pct"   data-action="%">%</button>
+
+    <!-- ── Row 4: π e n! logᵧx eˣ 10ˣ 4 5 6 × 1/x ── -->
+    <button class="btn" id="r4-pi"    data-action="pi">&#x3C0;</button>
+    <button class="btn" id="r4-e"     data-action="e_const">e</button>
+    <button class="btn" id="r4-fact"  data-action="factorial">n!</button>
+    <button class="btn" id="r4-logy"  data-action="logy">log<sub>y</sub>x</button>
+    <button class="btn" id="r4-ex"    data-action="exp_e">e<sup>x</sup></button>
+    <button class="btn" id="r4-10x"   data-action="pow10">10<sup>x</sup></button>
+    <button class="btn" id="r4-4"     data-action="4">4</button>
+    <button class="btn" id="r4-5"     data-action="5">5</button>
+    <button class="btn" id="r4-6"     data-action="6">6</button>
+    <button class="btn" id="r4-mul"   data-action="*">&#215;</button>
+    <button class="btn" id="r4-recip" data-action="recip">1/x</button>
+
+    <!-- ── Row 5: sin cos tan xʸ x³ x² 1 2 3 -  = (tall, spans rows 5-6) ── -->
+    <button class="btn" id="r5-sin" data-action="sin">sin</button>
+    <button class="btn" id="r5-cos" data-action="cos">cos</button>
+    <button class="btn" id="r5-tan" data-action="tan">tan</button>
+    <button class="btn" id="r5-pxy" data-action="pow_xy">x<sup>y</sup></button>
+    <button class="btn" id="r5-x3"  data-action="cube">x<sup>3</sup></button>
+    <button class="btn" id="r5-x2"  data-action="square">x<sup>2</sup></button>
+    <button class="btn" id="r5-1"   data-action="1">1</button>
+    <button class="btn" id="r5-2"   data-action="2">2</button>
+    <button class="btn" id="r5-3"   data-action="3">3</button>
+    <button class="btn" id="r5-sub" data-action="-">-</button>
+    <button class="btn btn-green" id="r5-eq" data-action="=">=</button>
+
+    <!-- ── Row 6: sin⁻¹ cos⁻¹ tan⁻¹ ʸ√x ³√ |x|  0 (wide)  .  + ── -->
+    <button class="btn" id="r6-asin"  data-action="asin">sin<sup>-1</sup></button>
+    <button class="btn" id="r6-acos"  data-action="acos">cos<sup>-1</sup></button>
+    <button class="btn" id="r6-atan"  data-action="atan">tan<sup>-1</sup></button>
+    <button class="btn" id="r6-yroot" data-action="yroot"><sup>y</sup>&#x221A;x</button>
+    <button class="btn" id="r6-cbrt"  data-action="cbrt"><sup>3</sup>&#x221A;</button>
+    <button class="btn" id="r6-abs"   data-action="abs">|x|</button>
+    <button class="btn" id="r6-0"     data-action="0">0</button>
+    <button class="btn" id="r6-dot"   data-action=".">.</button>
+    <button class="btn" id="r6-add"   data-action="+">+</button>
+
+  </div><!-- /btn-area -->
+
+  <!-- ── Resize handles (8 directions) ── -->
+  <div class="resize-handle resize-n"  data-dir="n"></div>
+  <div class="resize-handle resize-s"  data-dir="s"></div>
+  <div class="resize-handle resize-e"  data-dir="e"></div>
+  <div class="resize-handle resize-w"  data-dir="w"></div>
+  <div class="resize-handle resize-nw" data-dir="nw"></div>
+  <div class="resize-handle resize-ne" data-dir="ne"></div>
+  <div class="resize-handle resize-sw" data-dir="sw"></div>
+  <div class="resize-handle resize-se" data-dir="se"></div>
+
+</div><!-- /calculator -->
+
+<!-- ══════════════════════════════════════════════
+     Help modal
+══════════════════════════════════════════════ -->
+<div id="help-overlay">
+  <div id="help-box">
+    <h2>Scientific Calculator &#8212; Help</h2>
+
+    <h3>Basic Operations</h3>
+    <table>
+      <tr><th>Button</th><th>Description</th></tr>
+      <tr><td>0&#8211;9, .</td><td>Enter digits and decimal point</td></tr>
+      <tr><td>+, -, &#215;, /</td><td>Add, Subtract, Multiply, Divide</td></tr>
+      <tr><td>=</td><td>Evaluate the expression</td></tr>
+      <tr><td>C</td><td>Clear everything (full reset)</td></tr>
+      <tr><td>&#8592; (Backspace)</td><td>Delete the last character</td></tr>
+      <tr><td>+/-</td><td>Toggle positive / negative sign</td></tr>
+      <tr><td>%</td><td>Percentage (divides current value by 100)</td></tr>
+      <tr><td>mod</td><td>Modulo &#8212; remainder of division</td></tr>
+      <tr><td>( )</td><td>Parentheses for grouping expressions</td></tr>
+    </table>
+
+    <h3>Scientific Functions</h3>
+    <table>
+      <tr><th>Button</th><th>Description</th></tr>
+      <tr><td>sin / cos / tan</td><td>Trigonometric functions (honours Deg/Rad mode)</td></tr>
+      <tr><td>sin&#8315;&#185; / cos&#8315;&#185; / tan&#8315;&#185;</td><td>Inverse trig &#8212; result in selected angle unit</td></tr>
+      <tr><td>sinh / cosh / tanh</td><td>Hyperbolic functions</td></tr>
+      <tr><td>sinh&#8315;&#185; / cosh&#8315;&#185; / tanh&#8315;&#185;</td><td>Inverse hyperbolic</td></tr>
+      <tr><td>log</td><td>Base-10 logarithm</td></tr>
+      <tr><td>ln</td><td>Natural logarithm (base e)</td></tr>
+      <tr><td>log&#8322;x</td><td>Base-2 logarithm</td></tr>
+      <tr><td>log&#7383;x</td><td>Arbitrary-base log: enter base &#8594; log&#7383;x &#8594; enter x &#8594; =</td></tr>
+      <tr><td>e<sup>x</sup></td><td>e raised to the power of x</td></tr>
+      <tr><td>10<sup>x</sup></td><td>10 raised to the power of x</td></tr>
+      <tr><td>x&#178;</td><td>Square of the current value</td></tr>
+      <tr><td>x&#179;</td><td>Cube of the current value</td></tr>
+      <tr><td>x<sup>y</sup></td><td>x to the power y: enter x &#8594; x<sup>y</sup> &#8594; enter y &#8594; =</td></tr>
+      <tr><td>&#x221A;</td><td>Square root</td></tr>
+      <tr><td>&#179;&#x221A;</td><td>Cube root</td></tr>
+      <tr><td><sup>y</sup>&#x221A;x</td><td>y-th root: enter x &#8594; <sup>y</sup>&#x221A;x &#8594; enter y &#8594; =</td></tr>
+      <tr><td>1/x</td><td>Reciprocal</td></tr>
+      <tr><td>|x|</td><td>Absolute value</td></tr>
+      <tr><td>n!</td><td>Factorial (integer inputs only)</td></tr>
+      <tr><td>&#x3C0;</td><td>Pi constant (3.14159&#8230;)</td></tr>
+      <tr><td>e</td><td>Euler&#8217;s number (2.71828&#8230;)</td></tr>
+      <tr><td>Exp</td><td>Scientific notation &#8212; type mantissa, Exp, then exponent</td></tr>
+    </table>
+
+    <h3>Memory</h3>
+    <table>
+      <tr><th>Button</th><th>Description</th></tr>
+      <tr><td>MS</td><td>Memory Store &#8212; saves the current result</td></tr>
+      <tr><td>MR</td><td>Memory Recall &#8212; inserts the stored value</td></tr>
+      <tr><td>MC</td><td>Memory Clear &#8212; resets memory to zero</td></tr>
+      <tr><td>M+</td><td>Add current result to memory</td></tr>
+      <tr><td>M-</td><td>Subtract current result from memory</td></tr>
+    </table>
+
+    <h3>Angle Mode</h3>
+    <p>Select <strong>Deg</strong> or <strong>Rad</strong> to control the unit used by all trigonometric functions.</p>
+
+    <button id="help-close">Close</button>
+  </div>
+</div>
+
+<!-- Theme toast notification -->
+<div id="theme-toast"></div>
+
+<!-- logic.js is loaded last so the DOM is fully ready when it runs -->
+<script src="logic.js"></script>
+</body>
+</html>
