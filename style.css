@@ -440,7 +440,7 @@ body {
   color: var(--btn-color);
   font-family: Arial, Helvetica, sans-serif;
   /* font scales with the calculator size */
-  font-size: calc(25px * var(--scale));
+  font-size: calc(16px * var(--scale));
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -499,7 +499,7 @@ body {
   border-bottom: 1px solid var(--btn-grn-border);
   box-shadow: var(--btn-grn-shadow);
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  font-size: calc(20px * var(--scale));
+  font-size: calc(16px * var(--scale));
 }
 .btn-green:hover {
   filter: brightness(1.1);
