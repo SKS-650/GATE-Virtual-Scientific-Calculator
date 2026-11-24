@@ -75,19 +75,23 @@ GateVirtualCalculator/
 ## 3. Interface Overview
 
 ```
-╔══════════════════════════════════════════════════════════════╗
-║  Scientific Calculator          [Help] [☀] [—] [✕]          ║  ← Title Bar
-╠══════════════════════════════════════════════════════════════╣
-║                                         sin(30)=             ║  ← Expression Display
-║                                               0.5            ║  ← Result Display
-╠══════════════════════════════════════════════════════════════╣
-║  mod  ◉Deg ○Rad              MC    MR    MS    M+    M-      ║  ← Row 1
-║ sinh  cosh  tanh  Exp  (  )  [  ←  ]    C   +/-    √        ║  ← Row 2
-║sinh⁻¹ cosh⁻¹ tanh⁻¹ log₂x ln log  7   8   9    /    %      ║  ← Row 3
-║  π    e    n!  logᵧx  eˣ  10ˣ 4   5   6    ×   1/x          ║  ← Row 4
-║ sin  cos  tan   xʸ   x³  x²  1   2   3    -   ╔═══╗         ║  ← Row 5
-║sin⁻¹cos⁻¹tan⁻¹ ʸ√x  ³√  |x|  0       .   +   ║ = ║         ║  ← Row 6
-╚══════════════════════════════════════════════╚═══╝══════════╝
++==============================================================+
+|  Scientific Calculator        [Help] [Theme] [--] [X]       |  <- Title Bar
++==============================================================+
+|                                           sin(30)=           |  <- Expression Display
+|                                                 0.5          |  <- Result Display
++==============================================================+
+| mod  [*]Deg [ ]Rad          MC     MR     MS     M+    M-   |  <- Row 1
+| sinh  cosh  tanh  Exp  (  )  [  <-  ]     C    +/-    sqrt  |  <- Row 2
+|sinh-1 cosh-1 tanh-1 log2x  ln  log   7    8    9    /    %  |  <- Row 3
+|  pi   e    n!  logyx  e^x  10^x  4    5    6    *   1/x     |  <- Row 4
+| sin  cos  tan   x^y  x^3  x^2   1    2    3    -   +------+ |  <- Row 5
+|sin-1 cos-1 tan-1 y_rt 3_rt |x|  [ 0 ]   .    +   |  =   | |  <- Row 6
++================================================+  |      | |
+                                                    +------+ |
+                                                             |
+(= button spans Rows 5 and 6, Column 11)                    |
++===========================================================+
 ```
 
 ### Colour coding
@@ -365,18 +369,18 @@ Three functions require **two separate inputs** separated by pressing the functi
 ### Visual flow diagram
 
 ```
- ┌─────────────┐    press      ┌──────────────┐    type     ┌─────────────┐    press   ┌────────┐
- │  Enter  x   │ ──────────→  │  Function btn │ ──────────→ │  Enter  y   │ ─────────→ │   =    │
- │  (base /    │   xʸ / ʸ√x / │  Top display  │             │  (exponent/ │            │ Result │
- │  radicand)  │   logᵧx       │  shows prompt │             │  degree/    │            │ shown  │
- └─────────────┘               └──────────────┘             │  argument)  │            └────────┘
-                                                             └─────────────┘
++---------------+  press     +--------------+  type    +-------------+  press  +--------+
+|   Enter  x    | ---------> | Function btn | -------> |   Enter  y  | ------> |   =    |
+|   (base  /    |  x^y /     | Top display  |          | (exponent / |         | Result |
+|   radicand)   |  y_rt(x) / | shows prompt |          |  degree  /  |         | shown  |
++---------------+  logyx     +--------------+          |  argument)  |         +--------+
+                                                       +-------------+
 
- While waiting for the second input:
-   ✓  Digit keys (0–9) and decimal point work normally
-   ✓  = finalises the operation
-   ✓  C cancels and resets everything
-   ✗  All other buttons are ignored
+While waiting for the second input:
+  [OK]  Digit keys (0-9) and decimal point work normally
+  [OK]  = finalises the operation
+  [OK]  C cancels and resets everything
+  [--]  All other buttons are ignored until = or C is pressed
 ```
 
 ---
@@ -437,12 +441,12 @@ The calculator behaves like a **floating desktop window** — it can be freely m
 ### Dragging
 
 ```
- ┌──────────────────────────────────────────┐
- │  Scientific Calculator   [Help][☀][—][✕] │  ← Grab anywhere on the
- │  ← drag zone (title bar)                 │     title bar text area
- └──────────────────────────────────────────┘
-      ↕ cursor changes to  ✋ grab
-        while dragging  →  ✊ grabbing
++------------------------------------------+
+|  Scientific Calculator  [Help][Theme][-][X]|  <- Grab anywhere on the
+|  <-- drag zone (title bar text area)      |     title bar (not on a button)
++------------------------------------------+
+     cursor changes to:  [grab]
+       while dragging ->  [grabbing]
 ```
 
 - Click and hold on the **title bar text area** (not on a button).
