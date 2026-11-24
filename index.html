@@ -2,7 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--
+    viewport notes:
+    • width=device-width   – logical pixels match CSS pixels on all DPR screens
+    • initial-scale=1.0    – no zoom on first load
+    • maximum-scale=1.0    – prevent iOS double-tap zoom that fights drag gestures
+    • user-scalable=no     – disable pinch-zoom so resize gestures aren't stolen
+    • viewport-fit=cover   – content fills notch/island area on iPhone X+
+  -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0,
+                 maximum-scale=1.0, user-scalable=no,
+                 viewport-fit=cover" />
+  <!-- Prevent iOS from treating phone numbers / addresses as links -->
+  <meta name="format-detection" content="telephone=no" />
+  <!-- Standalone PWA-style full-screen on iOS home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>GATE Virtual Scientific Calculator</title>
   <link rel="stylesheet" href="style.css" />
 </head>

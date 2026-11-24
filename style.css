@@ -440,7 +440,7 @@ body {
   color: var(--btn-color);
   font-family: Arial, Helvetica, sans-serif;
   /* font scales with the calculator size */
-  font-size: calc(13px * var(--scale));
+  font-size: calc(25px * var(--scale));
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -684,114 +684,135 @@ body {
 }
 
 /* ============================================================
-   DRAGGABLE & RESIZABLE  —  positioning & cursor rules
+   DRAGGABLE & RESIZABLE  —  positioning, cursor & touch rules
    ============================================================ */
 
-/* The calculator becomes a freely-positioned floating window.
-   The flex-column layout and overflow:visible from the main
-   #calculator rule above already handle stretch — we only need
-   to add position:fixed and minimum dimensions here.           */
+/* The calculator becomes a freely-positioned floating window. */
 #calculator {
   position: fixed;
-  min-width:  420px;
-  min-height: 320px;
+  min-width:  320px;   /* comfortable on phones */
+  min-height: 260px;
   /* overflow:visible and display:flex set in main rule above */
 }
 
-/* Title bar signals "draggable" */
+/* ── Title bar drag zone ── */
 #titlebar {
   cursor: grab;
+  /* Prevent the browser from hijacking the touch gesture
+     (scroll / pan) while the user is dragging the calculator. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 #titlebar.dragging {
   cursor: grabbing;
 }
 
-/* Keep button-area and display clipped inside the rounded shell */
-#display-area {
-  /* already declared above — just ensure overflow clips cleanly */
-  overflow: hidden;
-}
+/* Keep display clipped */
+#display-area { overflow: hidden; }
 
 /* ── Resize handles ──
-   Each handle is a thin transparent strip/corner overlaid on
-   the calculator edge. They sit outside the visible box via
-   negative insets so they don't cover content.               */
+   Edge handles: 22 px wide/tall so a fingertip can grab them.
+   Corner handles: 28 × 28 px — large enough for touch.
+   All handles get touch-action:none so the browser doesn't
+   scroll the page during a resize gesture.                    */
 .resize-handle {
   position: absolute;
   z-index: 10;
-  /* default transparent — the cursor change is the visual cue */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* North (top edge) */
-.resize-n {
-  top: -5px; left: 10px; right: 10px; height: 10px;
-  cursor: n-resize;
-}
-/* South (bottom edge) */
-.resize-s {
-  bottom: -5px; left: 10px; right: 10px; height: 10px;
-  cursor: s-resize;
-}
-/* East (right edge) */
-.resize-e {
-  right: -5px; top: 10px; bottom: 10px; width: 10px;
-  cursor: e-resize;
-}
-/* West (left edge) */
-.resize-w {
-  left: -5px; top: 10px; bottom: 10px; width: 10px;
-  cursor: w-resize;
-}
-/* NW corner */
-.resize-nw {
-  top: -5px; left: -5px; width: 16px; height: 16px;
-  cursor: nw-resize;
-}
-/* NE corner */
-.resize-ne {
-  top: -5px; right: -5px; width: 16px; height: 16px;
-  cursor: ne-resize;
-}
-/* SW corner */
-.resize-sw {
-  bottom: -5px; left: -5px; width: 16px; height: 16px;
-  cursor: sw-resize;
-}
-/* SE corner */
-.resize-se {
-  bottom: -5px; right: -5px; width: 16px; height: 16px;
-  cursor: se-resize;
-}
+/* North */
+.resize-n  { top: -11px; left: 20px; right: 20px; height: 22px; cursor: n-resize; }
+/* South */
+.resize-s  { bottom: -11px; left: 20px; right: 20px; height: 22px; cursor: s-resize; }
+/* East */
+.resize-e  { right: -11px; top: 20px; bottom: 20px; width: 22px; cursor: e-resize; }
+/* West */
+.resize-w  { left: -11px; top: 20px; bottom: 20px; width: 22px; cursor: w-resize; }
+/* NW */
+.resize-nw { top: -11px; left: -11px; width: 28px; height: 28px; cursor: nw-resize; }
+/* NE */
+.resize-ne { top: -11px; right: -11px; width: 28px; height: 28px; cursor: ne-resize; }
+/* SW */
+.resize-sw { bottom: -11px; left: -11px; width: 28px; height: 28px; cursor: sw-resize; }
+/* SE */
+.resize-se { bottom: -11px; right: -11px; width: 28px; height: 28px; cursor: se-resize; }
 
-/* Visual corner accent — a small coloured L-shape so the user
-   can SEE the resize affordance without cluttering the design  */
+/* Corner accent: L-shaped bracket visible on all themes */
 .resize-nw::before, .resize-ne::before,
 .resize-sw::before, .resize-se::before {
   content: '';
   position: absolute;
-  width: 10px; height: 10px;
-  border-color: rgba(255,255,255,0.35);
+  width: 14px; height: 14px;
+  border-color: rgba(255,255,255,0.5);
   border-style: solid;
 }
-.resize-nw::before { top:4px; left:4px;  border-width: 2px 0 0 2px; }
-.resize-ne::before { top:4px; right:4px; border-width: 2px 2px 0 0; }
-.resize-sw::before { bottom:4px; left:4px;  border-width: 0 0 2px 2px; }
-.resize-se::before { bottom:4px; right:4px; border-width: 0 2px 2px 0; }
+.resize-nw::before { top: 5px;    left: 5px;   border-width: 2px 0 0 2px; }
+.resize-ne::before { top: 5px;    right: 5px;  border-width: 2px 2px 0 0; }
+.resize-sw::before { bottom: 5px; left: 5px;   border-width: 0 0 2px 2px; }
+.resize-se::before { bottom: 5px; right: 5px;  border-width: 0 2px 2px 0; }
 
-/* While a resize drag is active, block pointer events on content
-   so the cursor doesn't flicker when it passes over buttons      */
-body.resizing * {
-  pointer-events: none !important;
-}
-body.resizing .resize-handle {
-  pointer-events: all !important;
+/* While resizing: suppress pointer events on content to prevent
+   accidental button triggers and cursor flicker.               */
+body.resizing * { pointer-events: none !important; }
+body.resizing .resize-handle { pointer-events: all !important; }
+
+/* While dragging: lock cursor on entire page */
+body.calc-dragging { cursor: grabbing !important; }
+body.calc-dragging * { pointer-events: none !important; cursor: grabbing !important; }
+
+/* ============================================================
+   MOBILE / COARSE-POINTER OVERRIDES
+   Applied when the primary input is a finger (touchscreen).
+   ============================================================ */
+@media (pointer: coarse) {
+
+  /* Bigger title / buttons in titlebar so they're easier to tap */
+  #titlebar { padding: 8px 10px; }
+  #titlebar .title { font-size: 16px; }
+
+  #btn-help,
+  #btn-theme { padding: 6px 14px; font-size: 14px; }
+
+  .win-btn { width: 30px; height: 28px; font-size: 13px; }
+
+  /* Thicker edge handles — a 44 px target is Apple's HIG minimum */
+  .resize-n,
+  .resize-s  { height: 32px; top: auto; bottom: auto; }
+  .resize-n  { top: -16px; }
+  .resize-s  { bottom: -16px; }
+
+  .resize-e,
+  .resize-w  { width: 32px; }
+  .resize-e  { right: -16px; }
+  .resize-w  { left: -16px; }
+
+  .resize-nw,
+  .resize-ne,
+  .resize-sw,
+  .resize-se { width: 40px; height: 40px; }
+  .resize-nw { top: -16px; left: -16px; }
+  .resize-ne { top: -16px; right: -16px; }
+  .resize-sw { bottom: -16px; left: -16px; }
+  .resize-se { bottom: -16px; right: -16px; }
+
+  /* Corner bracket bigger too */
+  .resize-nw::before, .resize-ne::before,
+  .resize-sw::before, .resize-se::before {
+    width: 18px; height: 18px;
+  }
+
+  /* Buttons: slightly more padding, larger tap area */
+  .btn { border-radius: 6px; }
+
+  /* Help box full-width on small phones */
+  #help-box { width: 92vw; padding: 14px 16px; }
 }
 
-/* While dragging, block pointer events on everything except the calc */
-body.calc-dragging {
-  cursor: grabbing !important;
-}
-body.calc-dragging * {
-  pointer-events: none !important;
-  cursor: grabbing !important;
+/* Very small screens: start narrower, let calc fill the screen */
+@media (max-width: 480px) {
+  #calculator { min-width: 280px; }
 }

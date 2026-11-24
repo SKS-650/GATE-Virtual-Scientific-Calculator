@@ -680,14 +680,20 @@
 })();
 
 /* ============================================================
-   DRAG & RESIZE ENGINE
+   DRAG & RESIZE ENGINE  (Pointer Events — mouse + touch + stylus)
    ─────────────────────────────────────────────────────────────
-   Drag   : mousedown on #titlebar → move calculator freely
-   Resize : mousedown on any .resize-handle → resize in that
-            direction while respecting min-width / min-height
-   Both operations are constrained to the viewport so the
-   calculator can never be dragged fully off-screen.
-   Position & size are persisted in localStorage.
+   Uses the W3C Pointer Events API so mouse, touch and stylus
+   are handled by a single code path.
+
+   Key techniques:
+     • setPointerCapture  — pointer stays captured to the element
+                            even when the finger slides off it.
+     • pointerId tracking — ignores stray second fingers.
+     • Auto-fit on load   — on narrow screens the calculator
+                            shrinks to fit the viewport width.
+     • Orientation change — repositions so it stays on screen.
+
+   Position & size are saved in localStorage.
    ============================================================ */
 (function () {
   'use strict';
@@ -695,161 +701,20 @@
   const calc     = document.getElementById('calculator');
   const titlebar = document.getElementById('titlebar');
 
-  /* ── Minimum dimensions ── */
-  const MIN_W = 420;
-  const MIN_H = 320;
+  /* ── Minimum dimensions (comfortable on a phone) ── */
+  const MIN_W = 280;
+  const MIN_H = 240;
 
-  /* ── Restore or centre on first load ── */
-  (function initPosition() {
-    const saved = JSON.parse(localStorage.getItem('calcGeometry') || 'null');
-    if (saved && typeof saved.x === 'number') {
-      setGeometry(saved.x, saved.y, saved.w, saved.h || null);
-    } else {
-      centreCalc();
-    }
-  })();
-
-  window.addEventListener('resize', function () {
-    /* Keep calc on-screen when viewport shrinks */
-    const r = calc.getBoundingClientRect();
-    let x = r.left, y = r.top;
-    x = clamp(x, 0, window.innerWidth  - r.width);
-    y = clamp(y, 0, window.innerHeight - r.height);
-    calc.style.left = x + 'px';
-    calc.style.top  = y + 'px';
-    saveGeometry();
-  });
-
-  /* ============================================================
-     Drag (title bar)
-     ============================================================ */
-  titlebar.addEventListener('mousedown', function (e) {
-    /* Ignore clicks on buttons inside the title bar */
-    if (e.target !== titlebar && e.target !== titlebar.querySelector('.title')) return;
-    e.preventDefault();
-
-    const startX  = e.clientX;
-    const startY  = e.clientY;
-    const origL   = calc.getBoundingClientRect().left;
-    const origT   = calc.getBoundingClientRect().top;
-
-    titlebar.classList.add('dragging');
-    document.body.classList.add('calc-dragging');
-
-    function onMove(ev) {
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
-
-      let newL = origL + dx;
-      let newT = origT + dy;
-
-      /* Clamp so at least 60 px of the bar stays inside the viewport */
-      const w = calc.offsetWidth;
-      const h = calc.offsetHeight;
-      newL = clamp(newL, -(w - 60), window.innerWidth  - 60);
-      newT = clamp(newT, 0,         window.innerHeight - 30);
-
-      calc.style.left = newL + 'px';
-      calc.style.top  = newT + 'px';
-    }
-
-    function onUp() {
-      titlebar.classList.remove('dragging');
-      document.body.classList.remove('calc-dragging');
-      saveGeometry();
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup',   onUp);
-    }
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup',   onUp);
-  });
-
-  /* ============================================================
-     Resize (edge / corner handles)
-     ============================================================ */
-  document.querySelectorAll('.resize-handle').forEach(function (handle) {
-    handle.addEventListener('mousedown', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const dir    = handle.dataset.dir;          /* 'n','s','e','w','nw','ne','sw','se' */
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const rect   = calc.getBoundingClientRect();
-
-      /* Snapshot of original geometry */
-      const origL = rect.left;
-      const origT = rect.top;
-      const origW = rect.width;
-      const origH = rect.height;
-
-      document.body.classList.add('resizing');
-
-      function onMove(ev) {
-        const dx = ev.clientX - startX;
-        const dy = ev.clientY - startY;
-
-        let newL = origL, newT = origT, newW = origW, newH = origH;
-
-        /* Horizontal */
-        if (dir.includes('e')) {
-          newW = Math.max(MIN_W, origW + dx);
-        }
-        if (dir.includes('w')) {
-          const delta = Math.min(dx, origW - MIN_W);
-          newW = origW - delta;
-          newL = origL + delta;
-        }
-
-        /* Vertical */
-        if (dir.includes('s')) {
-          newH = Math.max(MIN_H, origH + dy);
-        }
-        if (dir.includes('n')) {
-          const delta = Math.min(dy, origH - MIN_H);
-          newH = origH - delta;
-          newT = origT + delta;
-        }
-
-        /* Constrain top/left to viewport */
-        newL = Math.max(0, newL);
-        newT = Math.max(0, newT);
-
-        setGeometry(newL, newT, newW, newH);
-      }
-
-      function onUp() {
-        document.body.classList.remove('resizing');
-        saveGeometry();
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup',   onUp);
-      }
-
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup',   onUp);
-    });
-  });
-
-  /* ============================================================
+  /* ══════════════════════════════════════════════════════
      Helpers
-     ============================================================ */
-  function setGeometry(x, y, w, h) {
-    calc.style.left   = x + 'px';
-    calc.style.top    = y + 'px';
-    calc.style.width  = w + 'px';
-    /* Always set height so vertical resize works. The flex-column
-       layout in CSS lets btn-area fill whatever height is set.    */
-    if (h) calc.style.height = h + 'px';
-  }
+     ══════════════════════════════════════════════════════ */
+  function clamp(val, lo, hi) { return Math.min(Math.max(val, lo), hi); }
 
-  function centreCalc() {
-    const w = calc.offsetWidth  || 700;
-    const h = calc.offsetHeight || 440;
-    calc.style.left = Math.max(0, (window.innerWidth  - w) / 2) + 'px';
-    calc.style.top  = Math.max(0, (window.innerHeight - h) / 2) + 'px';
-    /* Don't set an explicit height on first load — let content determine it */
-    saveGeometry();
+  function setGeometry(x, y, w, h) {
+    calc.style.left  = x + 'px';
+    calc.style.top   = y + 'px';
+    calc.style.width = w + 'px';
+    if (h) calc.style.height = h + 'px';
   }
 
   function saveGeometry() {
@@ -859,9 +724,194 @@
     }));
   }
 
-  function clamp(val, lo, hi) {
-    return Math.min(Math.max(val, lo), hi);
+  function centreCalc() {
+    /* Fit to viewport on first load / if calc is wider than screen */
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let w = calc.offsetWidth  || 700;
+    let h = calc.offsetHeight || 440;
+    /* On narrow screens, shrink to fit */
+    if (w > vw - 10) {
+      w = vw - 10;
+      calc.style.width = w + 'px';
+    }
+    calc.style.left = Math.max(0, (vw - w) / 2) + 'px';
+    calc.style.top  = Math.max(0, (vh - h) / 2) + 'px';
+    saveGeometry();
   }
+
+  function keepOnScreen() {
+    const r  = calc.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    /* Shrink if wider than viewport */
+    if (r.width > vw) {
+      calc.style.width = (vw - 10) + 'px';
+    }
+    const nr = calc.getBoundingClientRect();
+    const x  = clamp(nr.left, 0, Math.max(0, vw - nr.width));
+    const y  = clamp(nr.top,  0, Math.max(0, vh - nr.height));
+    calc.style.left = x + 'px';
+    calc.style.top  = y + 'px';
+    saveGeometry();
+  }
+
+  /* ══════════════════════════════════════════════════════
+     Initial position
+     ══════════════════════════════════════════════════════ */
+  (function initPosition() {
+    const saved = JSON.parse(localStorage.getItem('calcGeometry') || 'null');
+    if (saved && typeof saved.x === 'number') {
+      setGeometry(saved.x, saved.y, saved.w, saved.h || null);
+      /* Validate — saved geometry may be from a different screen */
+      requestAnimationFrame(keepOnScreen);
+    } else {
+      /* Wait one frame so offsetWidth/Height are measured after render */
+      requestAnimationFrame(centreCalc);
+    }
+  })();
+
+  /* ══════════════════════════════════════════════════════
+     Viewport resize / orientation change
+     ══════════════════════════════════════════════════════ */
+  window.addEventListener('resize', keepOnScreen);
+
+  /* orientationchange fires before the new dimensions are settled;
+     a 300 ms delay lets the browser finish rotating.              */
+  window.addEventListener('orientationchange', function () {
+    setTimeout(keepOnScreen, 300);
+  });
+
+  /* ══════════════════════════════════════════════════════
+     DRAG  —  pointer events on the title bar
+     ══════════════════════════════════════════════════════ */
+  titlebar.addEventListener('pointerdown', function (e) {
+    /* Only drag when the target is the bar itself or its title span —
+       not when tapping Help / Theme / window buttons.               */
+    const tgt = e.target;
+    const isBar = tgt === titlebar || tgt === titlebar.querySelector('.title');
+    if (!isBar) return;
+
+    e.preventDefault();
+    titlebar.setPointerCapture(e.pointerId);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const origL  = calc.getBoundingClientRect().left;
+    const origT  = calc.getBoundingClientRect().top;
+    const capId  = e.pointerId;
+
+    titlebar.classList.add('dragging');
+    document.body.classList.add('calc-dragging');
+
+    function onMove(ev) {
+      if (ev.pointerId !== capId) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const cw = calc.offsetWidth;
+      const ch = calc.offsetHeight;
+
+      let newL = origL + (ev.clientX - startX);
+      let newT = origT + (ev.clientY - startY);
+
+      /* Keep at least 44 px of the title bar inside the viewport
+         so the user can always grab it again.                      */
+      newL = clamp(newL, -(cw - 44), vw - 44);
+      newT = clamp(newT, 0,          vh - 30);
+
+      calc.style.left = newL + 'px';
+      calc.style.top  = newT + 'px';
+    }
+
+    function onUp(ev) {
+      if (ev.pointerId !== capId) return;
+      titlebar.classList.remove('dragging');
+      document.body.classList.remove('calc-dragging');
+      saveGeometry();
+      titlebar.removeEventListener('pointermove',   onMove);
+      titlebar.removeEventListener('pointerup',     onUp);
+      titlebar.removeEventListener('pointercancel', onUp);
+    }
+
+    titlebar.addEventListener('pointermove',   onMove);
+    titlebar.addEventListener('pointerup',     onUp);
+    titlebar.addEventListener('pointercancel', onUp);
+  });
+
+  /* ══════════════════════════════════════════════════════
+     RESIZE  —  pointer events on each edge / corner handle
+     ══════════════════════════════════════════════════════ */
+  document.querySelectorAll('.resize-handle').forEach(function (handle) {
+
+    handle.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      handle.setPointerCapture(e.pointerId);
+
+      const dir    = handle.dataset.dir;   /* n s e w nw ne sw se */
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const rect   = calc.getBoundingClientRect();
+      const origL  = rect.left;
+      const origT  = rect.top;
+      const origW  = rect.width;
+      const origH  = rect.height;
+      const capId  = e.pointerId;
+
+      document.body.classList.add('resizing');
+
+      function onMove(ev) {
+        if (ev.pointerId !== capId) return;
+
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        let newL = origL, newT = origT, newW = origW, newH = origH;
+
+        /* ── Horizontal ── */
+        if (dir.includes('e')) {
+          newW = Math.max(MIN_W, origW + dx);
+        }
+        if (dir.includes('w')) {
+          const delta = clamp(dx, -(origW - MIN_W), origW);
+          newW = origW - delta;
+          newL = origL + delta;
+        }
+
+        /* ── Vertical ── */
+        if (dir.includes('s')) {
+          newH = Math.max(MIN_H, origH + dy);
+        }
+        if (dir.includes('n')) {
+          const delta = clamp(dy, -(origH - MIN_H), origH);
+          newH = origH - delta;
+          newT = origT + delta;
+        }
+
+        /* Don't let the top-left corner go off-screen */
+        newL = Math.max(0, newL);
+        newT = Math.max(0, newT);
+
+        /* Don't exceed viewport width/height */
+        newW = Math.min(newW, window.innerWidth  - newL);
+        newH = Math.min(newH, window.innerHeight - newT);
+
+        setGeometry(newL, newT, newW, newH);
+      }
+
+      function onUp(ev) {
+        if (ev.pointerId !== capId) return;
+        document.body.classList.remove('resizing');
+        saveGeometry();
+        handle.removeEventListener('pointermove',   onMove);
+        handle.removeEventListener('pointerup',     onUp);
+        handle.removeEventListener('pointercancel', onUp);
+      }
+
+      handle.addEventListener('pointermove',   onMove);
+      handle.addEventListener('pointerup',     onUp);
+      handle.addEventListener('pointercancel', onUp);
+    });
+  });
 
 })();
 
